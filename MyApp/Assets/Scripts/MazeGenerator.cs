@@ -1,29 +1,27 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using D = System.Diagnostics;
 
-public class MazeGenerator : MonoBehaviour
+public class MazeGenerator
 {
     private List<char[]> maze;
 
-    public int rows, columns;
+    private int rows, columns;
 
-    protected void Start()
+    public MazeGenerator(int rows, int columns)
     {
+        this.rows = rows;
+        this.columns = columns;
         maze = new List<char[]>();
-        for (int i = 0; i < this.rows * 2 + 1; i++)
+        for (int i = 0; i < this.rows * 2 - 1; i++)
         {
-            maze.Add(new char[this.columns * 2 + 1]);
+            maze.Add(new char[this.columns * 2 - 1]);
         }
-        D.Debug.WriteLine("HJFEIJ");
-        generateMaze();
-        print(maze);
     }
+    
 
     public void generateMaze()
     {
-
         List<Point> frontier = new List<Point>();
         List<Point> connectedNodes = new List<Point>();
         //@ is the start point of the maze and # is the end of the maze
@@ -31,14 +29,13 @@ public class MazeGenerator : MonoBehaviour
         // implementing using Prims
 
         set();
-        Point origin = new Point(rows / 2, columns / 2, rows, columns);
+        Point origin = new Point(rows / 2 * 2, columns / 2 * 2, rows, columns);
         connectedNodes.Add(origin);
 
         findFrontier(frontier, connectedNodes);
         while (!(frontier.Count == 0))
         {
-            D.Debug.WriteLine(frontier.Count);
-            Point next = frontier[(int)((Random.Range(0, 1) * frontier.Count))];
+            Point next = frontier[Random.Range(0, frontier.Count)];
             addPoint(next, connectedNodes);
             frontier.Remove(next);
             connectedNodes.Add(next);
@@ -48,7 +45,7 @@ public class MazeGenerator : MonoBehaviour
     }
 
     public List<char[]> getMaze()
-    {
+    {   
         return maze;
     }
     private void findFrontier(List<Point> frontier, List<Point> connected)
@@ -88,7 +85,7 @@ public class MazeGenerator : MonoBehaviour
             {
                 if (point.y - p.y == 2)
                 {
-                    maze[p.y + 1][p.x] = ' ';
+                    maze[point.y - 1][point.x] = ' ';
                 }
                 else if (p.y - point.y == 2)
                 {
@@ -96,7 +93,7 @@ public class MazeGenerator : MonoBehaviour
                 }
                 else if (point.x - p.x == 2)
                 {
-                    maze[point.y][p.x + 1] = ' ';
+                    maze[point.y][point.x - 1] = ' ';
                 }
                 else if (p.x - point.x == 2)
                 {
@@ -129,7 +126,7 @@ public class MazeGenerator : MonoBehaviour
             }
         }
         maze[0][0] = '@';
-        maze[(int)(Random.Range(0, 1) * (rows - 1) + 1) * 2][(int)(Random.Range(0, 1) * (columns + 1)) * 2] = '#';
+        maze[(rows-1)*2][(columns-1)*2] = '#';
     }
     private bool nearDistance(Point p1, Point p2)
     {
@@ -145,16 +142,21 @@ public class MazeGenerator : MonoBehaviour
         return false;
     }
 
-    class Point
+    public class Point
     {
         public int x, y, rows, columns;
         public Point(int y, int x, int rows, int columns)
         {
             this.x = x;
             this.y = y;
-            this.rows = rows * 2;
-            this.columns = columns * 2;
+            this.rows = rows * 2 - 1;
+            this.columns = columns * 2 - 1;
         }
+
+        public override bool Equals(object obj) {
+            return x == (obj as Point).x && y == (obj as Point).y;
+        }
+
         public bool isonTopBorder()
         {
             return y <= 0;
